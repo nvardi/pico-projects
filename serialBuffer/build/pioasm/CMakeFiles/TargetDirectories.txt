@@ -1,0 +1,3 @@
+/home/pi/pico/pico-projects/serialBuffer/build/pioasm/CMakeFiles/rebuild_cache.dir
+/home/pi/pico/pico-projects/serialBuffer/build/pioasm/CMakeFiles/edit_cache.dir
+/home/pi/pico/pico-projects/serialBuffer/build/pioasm/CMakeFiles/pioasm.dir
