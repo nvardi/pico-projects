@@ -101,7 +101,6 @@ int main() {
             gpio_put(LED_PIN, 1);                   // Turn LED on
         } //Get chars from uart to rx queue 
 
-
         // Main FSM
         // Switches states to reflect the punch assembly process
         // while moving data from the rx buffer to the tx buffer.  
