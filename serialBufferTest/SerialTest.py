@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+# 2023 FIF orientering
 # Tester for the serial buffet Pico
 # Sends data to /dev/serial0 TxD (gpio pin 8), receives on RxD(gpio pin 10) and verifies that no data is missing
 # RTS on gpio17 (pin 11) chokes the Rx to simulate a rate limited radio module
