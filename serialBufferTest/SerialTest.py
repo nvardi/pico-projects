@@ -18,7 +18,7 @@ import generatePunches
 # List of tests, specifying the number of punches in each test
 testList = [16, 128, 1024, 10*1024+10]
 testList = [16, 16, 16, 16]
-testList = [2]
+#testList = [2]
 Npunches = 3200 					# Number of punches in the test
 Nstations = 2 					# number of connected SI stations (input channels)
 
@@ -63,12 +63,12 @@ inputTestBuffer = []
 def transmitPunch(payload, channel = 0):
 	# write to serial port
 	if channel == 0:
-		print("Send ch 0: ", payload, end = '\n')
+		#print("Send ch 0: ", payload, end = '\n')
 		ser0.write(payload)
 		while(ser0.out_waiting > 0): # Wait for the UART to empty its internal buffer
 			time.sleep(0.001)		# Time for last char transmission
 	else:
-		print("Send ch 1: ", payload, end = '\n')
+		#print("Send ch 1: ", payload, end = '\n')
 		ser1.write(payload)
 		while(ser1.out_waiting > 0): # Wait for the UART to empty its internal buffer
 			time.sleep(0.001)		# Time for last char transmission
@@ -99,7 +99,7 @@ def extractPunches(punchStream):
 		#if punchStream[i] != generatePunches.punchHdr: # Classic, Header OK?
 		if punchStream[i+1] != generatePunches.punchHdr: # New, Header OK?
 			print("*** Error: punch header not found where expected") # No, flag error
-			exit(-1)	# and exit
+			return (punches)
 		punchLength = int(punchStream[i+2] +5) # Get punch length, add header, length and CRC 
 		punch = punchStream[i : i + punchLength] # Extract punch. TBD CRC check
 		# print("Extracted punch # " + str(j) + " :" + str(punch))
@@ -152,8 +152,8 @@ for bufferLoad in testList:
 		# print("\rTx # " + str(txCount) + ": " + str(txPunch), end = '\r')
 		# get channel to send on (AKA station number)
 		punchCN = int.from_bytes(txPunch[3:5], 'big')
-		punchCN = 0 # Test: all punches to one channel
-		print ("Punch to ch ", punchCN ) 
+		#punchCN = 1 # Test: all punches to one channel
+		#print ("Punch to ch ", punchCN ) 
 		# Send punch
 		transmitPunch(txPunch, punchCN) #TBD extract channel from punchSN
 	# read the buffered data back and test integrity

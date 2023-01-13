@@ -1,8 +1,8 @@
 /**
  * Copyright (c) 2022 FIF orientering.
  * 
- * Serial buffer
- * Buffers serial data on UART0, to facilitate interfacing a transmitter without flow control
+ * Serial buffer, dual channel version
+ * Buffers serial data from UART0 and UART1, to facilitate interfacing a transmitter without flow control
  * to a slow receiver with flow control.
  * All characters are relayed as received.
  * The CTS input from the radio module is respected, stopping the Tx until released
@@ -21,7 +21,6 @@
 #include "hardware/uart.h"
 #include "fifo.h"
 
-#define UART_ID uart0
 #define BAUD_RATE 38400
 #define DATA_BITS 8
 #define STOP_BITS 1
@@ -29,8 +28,15 @@
 
 // We are using pins 0 and 1, but see the GPIO function select table in the
 // datasheet for information on which other pins can be used.
-#define UART_TX_PIN 0
-#define UART_RX_PIN 1
+//  Note: the numbers in these definitions are GPIO numbers, not physical pins.
+#define UART0_ID uart0
+#define UART1_ID uart1
+#define UART0_TX_PIN 0
+#define UART0_RX_PIN 1
+#define UART0_CTS_PIN 2
+#define UART1_TX_PIN 4
+#define UART1_RX_PIN 5
+#define UART1_CTS_PIN 6
 
 static int chars_rxed, chars_txed, txLength = 0;
 #define RX_QUEUE_SIZE 10*1024   // Queue for received punches as stream bytes
@@ -68,34 +74,42 @@ int main() {
     queue_t txQueue = {0, 0, RX_QUEUE_SIZE, malloc(sizeof(uint8_t*) * TX_QUEUE_SIZE)};
 
     // Set up our UART with a basic baud rate.
-    uart_init(UART_ID, 2400);
+    uart_init(UART0_ID, 2400);
+    uart_init(UART1_ID, 2400);
 
     // Set the TX and RX pins by using the function select on the GPIO
     // Set datasheet for more information on function select
-    gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
-    gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
-    gpio_set_function(18, GPIO_FUNC_UART);
+    gpio_set_function(UART0_TX_PIN, GPIO_FUNC_UART);
+    gpio_set_function(UART0_RX_PIN, GPIO_FUNC_UART);
+    gpio_set_function(UART0_CTS_PIN , GPIO_FUNC_UART);
+    gpio_set_function(UART1_TX_PIN, GPIO_FUNC_UART);
+    gpio_set_function(UART1_RX_PIN, GPIO_FUNC_UART);
+    gpio_set_function(UART1_CTS_PIN , GPIO_FUNC_UART);
 
     // Actually, we want a different speed
     // The call will return the actual baud rate selected, which will be as close as
     // possible to that requested
-    int __unused actual = uart_set_baudrate(UART_ID, BAUD_RATE);
+    int __unused uart0_actual_baud_rate = uart_set_baudrate(UART0_ID, BAUD_RATE);
+    int __unused uart1_actual_baud_rate = uart_set_baudrate(UART1_ID, BAUD_RATE);
 
     // Set UART flow control CTS only (the buffer is always ready to receive)
-    uart_set_hw_flow(UART_ID, true, false);
+    uart_set_hw_flow(UART0_ID, true, false);
+    uart_set_hw_flow(UART1_ID, true, false);
 
     // Set our data format
-    uart_set_format(UART_ID, DATA_BITS, STOP_BITS, PARITY);
+    uart_set_format(UART0_ID, DATA_BITS, STOP_BITS, PARITY);
+    uart_set_format(UART1_ID, DATA_BITS, STOP_BITS, PARITY);
 
     // Turn on FIFO's
-    uart_set_fifo_enabled(UART_ID, true);
+    uart_set_fifo_enabled(UART0_ID, true);
+    uart_set_fifo_enabled(UART1_ID, true);
 
     // OK, all set up.
-    // uart_puts(UART_ID, "\nSerialBuffer started\n");
+    // uart_puts(UART0_ID, "\nSerialBuffer started\n");
     while (1) {
         // Polled Rx
-        if (uart_is_readable(UART_ID)) {            // Chars received in UART?
-            rx_char = uart_getc(UART_ID);           // Yes!, get from UART
+        if (uart_is_readable(UART1_ID)) {            // Chars received in UART?
+            rx_char = uart_getc(UART1_ID);           // Yes!, get from UART
             queue_write(&rxQueue, (void*)rx_char);  // Push into rx queue
             chars_rxed++;
             gpio_put(LED_PIN, 1);                   // Turn LED on
@@ -152,9 +166,9 @@ int main() {
 
         // // Polled Tx
         if(channelState == stateTx) { // in transmit mode?
-            if (uart_is_writable(UART_ID) && (txQueue.head != txQueue.tail)) { // OK to tx? 
+            if (uart_is_writable(UART0_ID) && (txQueue.head != txQueue.tail)) { // OK to tx? 
                 tx_char = (uint8_t)queue_read(&txQueue);    // Yes! pop char
-                uart_putc(UART_ID, tx_char);                // write to UART
+                uart_putc(UART0_ID, tx_char);                // write to UART
                 chars_txed++;                               // Count tx
                 gpio_put(LED_PIN, 0);                       // LED off
             } // char transmission 
