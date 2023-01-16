@@ -22,6 +22,8 @@ testList = [16, 128, 1024, 10*1024+10]
 # The last test intentionally overflows the buffer, validating the test
 # With 2 x 10K buffer, we expect about 1200 punches before overflow
 testList = [16, 16, 16, 16]
+#testList = [1, 1, 1, 1]
+#testList = [1]
 #testList = [16]
 
 Nstations = 2 					# number of connected SI stations (input channels)
@@ -79,10 +81,11 @@ def transmitPunch(payload, channel = 0):
 # The CTS line is pulsed to enable a burst  
 def receiveAll():
 	rxBuffer = []	# Empty list of bytearrays to collect Rx
+	#time.sleep(0.01)
 	while (True):
 		readData = []					# Buffer for bytes read in each burst
 		gpio.output(17, RTS_ENABLE)  	# pulse-enable RTS
-		time.sleep(0.001)
+		time.sleep(0.01)
 		gpio.output(17, RTS_DISABLE)
 		time.sleep(0.01)				# Wait until tx done
 		if (ser0.in_waiting == 0):		# Any chars received in uart?
