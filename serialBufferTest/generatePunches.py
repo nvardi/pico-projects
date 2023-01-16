@@ -31,7 +31,6 @@ punchCRC	= 0xABCD		# CRC1, CRC0 2 bytes 16 bit CRC value, computed including com
 # Fills a buffer with punch packages.
 
 def generatePunches(Npunches=1, Nstations=2):
-	os.system('clear')
 	# Test constants
 	testStart_ns = time.time_ns() 	# ref time in ns. TBD: midnight in ns
 	testStart = time.localtime(testStart_ns/1e9)
