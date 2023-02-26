@@ -967,6 +967,8 @@ CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/common/pico_b
 CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/common/pico_base/include/pico/config.h
 CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/common/pico_base/include/pico/error.h
 CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/common/pico_base/include/pico/types.h
+CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/common/pico_stdlib/include/pico/stdlib.h
+CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/common/pico_time/include/pico/time.h
 CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/rp2040/hardware_regs/include/hardware/platform_defs.h
 CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/rp2040/hardware_regs/include/hardware/regs/addressmap.h
 CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/rp2040/hardware_regs/include/hardware/regs/dreq.h
@@ -975,18 +977,23 @@ CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/rp2040/hardwa
 CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/rp2040/hardware_regs/include/hardware/regs/m0plus.h
 CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/rp2040/hardware_regs/include/hardware/regs/pads_bank0.h
 CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/rp2040/hardware_regs/include/hardware/regs/sio.h
+CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/rp2040/hardware_regs/include/hardware/regs/timer.h
 CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/rp2040/hardware_regs/include/hardware/regs/uart.h
 CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/rp2040/hardware_structs/include/hardware/structs/interp.h
 CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/rp2040/hardware_structs/include/hardware/structs/iobank0.h
 CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/rp2040/hardware_structs/include/hardware/structs/padsbank0.h
 CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/rp2040/hardware_structs/include/hardware/structs/sio.h
+CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/rp2040/hardware_structs/include/hardware/structs/timer.h
 CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/rp2040/hardware_structs/include/hardware/structs/uart.h
 CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/rp2_common/cmsis/include/cmsis/rename_exceptions.h
 CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/rp2_common/hardware_base/include/hardware/address_mapped.h
 CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/rp2_common/hardware_gpio/include/hardware/gpio.h
 CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/rp2_common/hardware_irq/include/hardware/irq.h
+CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/rp2_common/hardware_timer/include/hardware/timer.h
 CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/rp2_common/hardware_uart/include/hardware/uart.h
 CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/rp2_common/pico_platform/include/pico/platform.h
+CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/rp2_common/pico_stdio/include/pico/stdio.h
+CMakeFiles/SerialBuffer.dir/main.c.obj: /home/pi/pico/pico-sdk/src/rp2_common/pico_stdio_uart/include/pico/stdio_uart.h
 CMakeFiles/SerialBuffer.dir/main.c.obj: generated/pico_base/pico/config_autogen.h
 CMakeFiles/SerialBuffer.dir/main.c.obj: generated/pico_base/pico/version.h
 

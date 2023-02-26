@@ -95,11 +95,11 @@ int main() {
     printf ("Started Serial Buffer\n");
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
-    for (int i=0; i<10; i++) {
+    for (int i=0; i<5; i++) {
         gpio_put(LED_PIN, 1);
-        sleep_ms(50);
+        sleep_ms(30);
         gpio_put(LED_PIN, 0);
-        sleep_ms(50);
+        sleep_ms(170);
     }
 
     // Initialisation
@@ -125,7 +125,9 @@ int main() {
         // Set datasheet for more information on function select
         gpio_set_function(channel[chan].txGPIO, GPIO_FUNC_UART);
         gpio_set_function(channel[chan].rxGPIO, GPIO_FUNC_UART);
+        gpio_set_pulls(channel[chan].rxGPIO, true, false);
         gpio_set_function(channel[chan].ctsGPIO , GPIO_FUNC_UART);
+
 
         // Set UART flow control CTS only (the buffer is always ready to receive)
         uart_set_hw_flow(channel[chan].uart_id, channel[chan].ctsEn , channel[chan].rtsEn );
