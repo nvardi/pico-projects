@@ -10,7 +10,7 @@
  * Simple polled loop, continuously receiving bytes, sending complete contiguous punches
  * Interleaving punches from N stations. 
  * The LED shows a second of fast blinking on program start
- * The turns on when receiving, off when sending chars, so it blinks on every punch.
+ * Then turns on when receiving, off when sending chars, so it blinks on every punch.
  */
 
 /// \tag::SerialBuffer[]
@@ -33,6 +33,7 @@
 #define RX_QUEUE_SIZE 10*1024   // Queue for received punches as stream bytes
 #define TX_QUEUE_SIZE 128       // Queue for tx-ready punches, one at a time (oversized))
 
+long loopCount = 0;
 uint8_t rx_char, im_char, tx_char;
 const uint LED_PIN = PICO_DEFAULT_LED_PIN;
 // Definitions of the punch format
@@ -80,7 +81,7 @@ struct channelType channel[Nchannels] = {
     [1].ctsEn   = true,
     [0].rtsEn   = false,
     [1].rtsEn   = false,
-    [0].chars_rxed = 0,
+    [0].chars_rxed = 0,v g
     [1].chars_txed = 0,
     [0].chars_rxed = 0,
     [1].chars_txed = 0,
@@ -97,7 +98,7 @@ int main() {
     gpio_set_dir(LED_PIN, GPIO_OUT);
     for (int i=0; i<5; i++) {
         gpio_put(LED_PIN, 1);
-        sleep_ms(30);
+        sleep_ms(130);
         gpio_put(LED_PIN, 0);
         sleep_ms(170);
     }
@@ -141,6 +142,7 @@ int main() {
     } // initialisation
 
     while (1) {   // eternal poll loop
+        loopCount ++;
         for (int chan=0; chan<Nchannels; chan++  ){  // through channels
             // Polled Rx
             if (uart_is_readable(channel[chan].uart_id)) {              // Chars received in UART?
@@ -174,7 +176,8 @@ int main() {
                         if (channel[chan].txLength + im_char + 2 >= TX_QUEUE_SIZE) {    // Tx queue filled (tbd error)?
                             channel[chan].state = stateTransmit;                        // Yes! Send as is
                         } else {
-                            channel[chan].txLength = (im_char + 2);                     // Get length, adding 2 CRC bytes
+                            // Set punch length, adding 3 (16 bit CRC  and stop char)
+                            channel[chan].txLength = (im_char + 3);                     // Get length, adding 2 CRC bytes
                             channel[chan].state = statePayload;                         // Start transfer to tx queue
                         }   // update tx length
                     }   // rx queue not empty
