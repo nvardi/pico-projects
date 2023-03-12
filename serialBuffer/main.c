@@ -44,7 +44,8 @@ const uint LED_PIN = PICO_DEFAULT_LED_PIN;
 // We transfer all chars, but use the header and length to assemble complete punches for tx
 // The length byte is respected to allow for future formats
 // We attempt to transfer all data, even when the above format is not maintained.
-const uint8_t punchPre 	= 0x02; 	// STX, constant preamble of punch (only in "new" format?)
+const uint8_t STX 	= 0x02; 	// STX, constant preamble of punch (only in "new" format?)
+const uint8_t ETX 	= 0x02; 	// STX, constant preamble of punch (only in "new" format?)
 const uint8_t punchHdr 	= 0xD3; 	// 211, Constant first byte of every punch
 
 // States of the punch assembly and tx process:
@@ -98,9 +99,9 @@ int main() {
     gpio_set_dir(LED_PIN, GPIO_OUT);
     for (int i=0; i<5; i++) {
         gpio_put(LED_PIN, 1);
-        sleep_ms(130);
+        sleep_ms(50);
         gpio_put(LED_PIN, 0);
-        sleep_ms(170);
+        sleep_ms(50);
     }
 
     // Initialisation
@@ -182,14 +183,14 @@ int main() {
                         }   // update tx length
                     }   // rx queue not empty
                 break;
-                case statePayload: // Transferring payload rx to tx queue
+                case statePayload: // Transferring payload from rx queue to tx queue
                     if (channel[chan].rxQueue->head != channel[chan].rxQueue->tail) {   // chars in rx queue?
                         im_char = (uint8_t)queue_read(channel[chan].rxQueue);           // Yes! Pop char from rx queue
                         queue_write(channel[chan].txQueue, (void*)im_char);             // Push char to tx queue 
                         channel[chan].txLength--;                                       // count payload down
                         if (channel[chan].txLength == 0 ) {                             // last char transferred?
                             channel[chan].state = stateReady;                           // Yes! flag ready to transmit
-                        }  // last char transferred
+                        }  // last char transferred  TBD Tjek for ETX and add it
                     } // rx queue not empty
                 break;
                 case stateReady:   // Ready to transmit a punch

@@ -19,6 +19,15 @@ void* queue_read(queue_t *queue) {
     return handle;
 }
 
+// Peek: get the tail item without pointer update
+void* queue_peek(queue_t *queue) {
+    if (queue->tail == queue->head) {
+        return NULL;
+    }
+    void* handle = queue->data[queue->tail];
+    return handle;
+}
+
 int queue_write(queue_t *queue, void* handle) {
     if (((queue->head + 1) % queue->size) == queue->tail) {
         return -1;

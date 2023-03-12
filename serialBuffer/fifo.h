@@ -11,6 +11,7 @@ typedef struct {
 } queue_t;
 
 void* queue_read(queue_t *queue);
+void* queue_peek(queue_t *queue); // get item without pointer update
 int queue_write(queue_t *queue, void* handle);
 
 #endif
