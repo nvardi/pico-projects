@@ -23,6 +23,8 @@
 #include "hardware/uart.h"
 #include "fifo.h"
 
+#define blinkRate 200           // Initial blink rate [mS]
+#define blinkDuty 0.2           // initial blink duty cycle (ON fraction) 
 #define Nchannels 2 
 
 #define BAUD_RATE 38400
@@ -34,7 +36,7 @@
 #define TX_QUEUE_SIZE 128       // Queue for tx-ready punches, one at a time (oversized))
 
 long loopCount = 0;
-uint8_t rx_char, im_char, tx_char;
+uint8_t rx_char, tx_char;
 const uint LED_PIN = PICO_DEFAULT_LED_PIN;
 // Definitions of the punch format
 // Documentation: PC programmer's guide and SISRR1AP serial data record
@@ -45,7 +47,7 @@ const uint LED_PIN = PICO_DEFAULT_LED_PIN;
 // The length byte is respected to allow for future formats
 // We attempt to transfer all data, even when the above format is not maintained.
 const uint8_t STX 	= 0x02; 	// STX, constant preamble of punch (only in "new" format?)
-const uint8_t ETX 	= 0x02; 	// STX, constant preamble of punch (only in "new" format?)
+const uint8_t ETX 	= 0x03; 	// STX, constant preamble of punch (only in "new" format?)
 const uint8_t punchHdr 	= 0xD3; 	// 211, Constant first byte of every punch
 
 // States of the punch assembly and tx process:
@@ -67,6 +69,9 @@ struct channelType {
     queue_t *txQueue;   // buffer for one complete, ready to tx, punch
     int  state;
     int txLength;       // count of chars in current punch
+    int stxetx;         // STX/ETX delimiters used in punch
+    uint8_t im_char;    // Intermediate char for rx to tx
+    uint8_t prev_im_char;
 };
 
 struct channelType channel[Nchannels] = {
@@ -86,10 +91,16 @@ struct channelType channel[Nchannels] = {
     [1].chars_txed = 0,
     [0].chars_rxed = 0,
     [1].chars_txed = 0,
+    [0].state = stateHeader,
+    [1].state = stateHeader,
     [0].txLength = 0,
     [1].txLength = 0,
-    [0].state = stateHeader,
-    [1].state = stateHeader
+    [0].stxetx = 0,
+    [1].stxetx = 0,
+    [0].im_char = 0,
+    [1].im_char = 0,
+    [0].prev_im_char = 0,
+    [1].prev_im_char = 0
 };
 
 int main() {
@@ -99,9 +110,9 @@ int main() {
     gpio_set_dir(LED_PIN, GPIO_OUT);
     for (int i=0; i<5; i++) {
         gpio_put(LED_PIN, 1);
-        sleep_ms(50);
+        sleep_ms(blinkDuty*blinkRate);
         gpio_put(LED_PIN, 0);
-        sleep_ms(50);
+        sleep_ms((1-blinkDuty)*blinkRate);
     }
 
     // Initialisation
@@ -159,34 +170,36 @@ int main() {
             switch (channel[chan].state) {
                 case stateHeader:   // Looking for the header byte
                     if (channel[chan].rxQueue->head != channel[chan].rxQueue->tail) {     // chars in rx queue?
-                        im_char = (uint8_t)queue_read(channel[chan].rxQueue);           // Yes! Pop char from rx queue
-                        queue_write(channel[chan].txQueue, (void*)im_char);             // Push char to tx queue 
+                        channel[chan].prev_im_char = channel[chan].im_char;                                         // Remember for next read
+                        channel[chan].im_char = (uint8_t)queue_read(channel[chan].rxQueue);           // Yes! Pop char from rx queue
+                        queue_write(channel[chan].txQueue, (void*)channel[chan].im_char);             // Push char to tx queue 
                         channel[chan].txLength++;                                       // count up
                         if (channel[chan].txLength >= TX_QUEUE_SIZE) {                  // Tx queue filled (error!)?
                                 channel[chan].state = stateTransmit;                    // Yes! Send as is
-                        } else if (im_char == punchHdr) {                               // No! Detected  header?
+                        } else if (channel[chan].im_char == punchHdr) {                               // No! Detected  header?
+                            channel[chan].stxetx = (channel[chan].prev_im_char == STX); // Delimiters used?                                  // STX preceded header?
                             channel[chan].state = stateLength;                          // yes, Get length 
                         } 
                     } // chars in rx queue
                 break;
                 case stateLength:   // Reading payload length
                     if (channel[chan].rxQueue->head != channel[chan].rxQueue->tail) {   // chars in rx queue
-                        im_char = (uint8_t)queue_read(channel[chan].rxQueue);           // Pop char from rx queue
-                        queue_write(channel[chan].txQueue, (void*)im_char);             // Push char to tx queue 
+                        channel[chan].im_char = (uint8_t)queue_read(channel[chan].rxQueue);           // Pop char from rx queue
+                        queue_write(channel[chan].txQueue, (void*)channel[chan].im_char);             // Push char to tx queue 
                         channel[chan].txLength++; // count up
-                        if (channel[chan].txLength + im_char + 2 >= TX_QUEUE_SIZE) {    // Tx queue filled (tbd error)?
+                        if (channel[chan].txLength + channel[chan].im_char + 2 >= TX_QUEUE_SIZE) {    // Tx queue filled (tbd error)?
                             channel[chan].state = stateTransmit;                        // Yes! Send as is
                         } else {
-                            // Set punch length, adding 3 (16 bit CRC  and stop char)
-                            channel[chan].txLength = (im_char + 3);                     // Get length, adding 2 CRC bytes
-                            channel[chan].state = statePayload;                         // Start transfer to tx queue
+                            // Set punch length, adding 2 CRC bytes and optional ETX delimiter)
+                            channel[chan].txLength = (channel[chan].im_char + 2 + channel[chan].stxetx); // Set length
+                            channel[chan].state = statePayload;                           // Start transfer to tx queue
                         }   // update tx length
                     }   // rx queue not empty
                 break;
                 case statePayload: // Transferring payload from rx queue to tx queue
                     if (channel[chan].rxQueue->head != channel[chan].rxQueue->tail) {   // chars in rx queue?
-                        im_char = (uint8_t)queue_read(channel[chan].rxQueue);           // Yes! Pop char from rx queue
-                        queue_write(channel[chan].txQueue, (void*)im_char);             // Push char to tx queue 
+                        channel[chan].im_char = (uint8_t)queue_read(channel[chan].rxQueue);           // Yes! Pop char from rx queue
+                        queue_write(channel[chan].txQueue, (void*)channel[chan].im_char);             // Push char to tx queue 
                         channel[chan].txLength--;                                       // count payload down
                         if (channel[chan].txLength == 0 ) {                             // last char transferred?
                             channel[chan].state = stateReady;                           // Yes! flag ready to transmit
@@ -194,7 +207,7 @@ int main() {
                     } // rx queue not empty
                 break;
                 case stateReady:   // Ready to transmit a punch
-                channel[chan].txLength = 0;                         // Reset punch length
+                    channel[chan].txLength = 0;                         // Reset punch length
                     bool anyTx = false;
                     for (int c=0; c<Nchannels; c++  ){              // through channels
                         if (channel[c].state == stateTransmit){     // Any channel transmitting?
